@@ -8,6 +8,9 @@
 #
 # SPDX-License-Identifier:    BSD-3-Clause
 import re
+import glob
+import os
+import os.path
 
 
 def numsplit(text):
@@ -31,7 +34,7 @@ class ListPortInfo(object):
 
     def __init__(self, device=None):
         self.device = device
-        self.name = None
+        self.name = os.path.basename(device)
         self.description = 'n/a'
         self.hwid = 'n/a'
         # USB specific data
@@ -42,6 +45,9 @@ class ListPortInfo(object):
         self.manufacturer = None
         self.product = None
         self.interface = None
+        # special handling for links
+        if device is not None and os.path.islink(device):
+            self.hwid = 'LINK={}'.format(os.path.realpath(device))
 
     def usb_description(self):
         """return a short string to name the port based on USB info"""
@@ -84,6 +90,18 @@ class ListPortInfo(object):
             return self.hwid
         else:
             raise IndexError('{} > 2'.format(index))
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+def list_links(devices):
+    """\
+    search all /dev devices and look for symlinks to known ports already
+    listed in devices.
+    """
+    links = []
+    for device in glob.glob('/dev/*'):
+        if os.path.islink(device) and os.path.realpath(device) in devices:
+            links.append(device)
+    return links
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # test

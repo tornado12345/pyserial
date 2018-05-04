@@ -118,8 +118,8 @@ Bugfixes (win32):
 - don't recreate overlapped structures and events on each
   read/write.
 - don't set unneeded event masks.
-- dont use DOS device names for ports > 9.
-- remove send timeout (its not used in the linux impl. anyway).
+- don't use DOS device names for ports > 9.
+- remove send timeout (it's not used in the linux impl. anyway).
 
 
 Version 1.21    30 Sep 2003
@@ -199,7 +199,7 @@ Bugfixes (posix):
 
 - ``fd == 0`` fix from Vsevolod Lobko
 - netbsd fixes from Erik Lindgren
-- Dynamicaly lookup baudrates and some cleanups
+- Dynamically lookup baudrates and some cleanups
 
 Bugfixes (examples):
 
@@ -234,7 +234,7 @@ Bugfixes (win32):
 New Features:
 
 - ``dsrdtr`` setting to enable/disable DSR/DTR flow control independently
-  from the ``rtscts`` setting. (Currenly Win32 only, ignored on other
+  from the ``rtscts`` setting. (Currently Win32 only, ignored on other
   platforms)
 
 
@@ -379,7 +379,7 @@ New Features:
   affects Win32 as on other platforms, that setting was ignored anyway.
 - Improved xreadlines, it is now a generator function that yields lines as they
   are received (previously it called readlines which would only return all
-  lines read after a read-timeout). However xreadlines is deprecated an not
+  lines read after a read-timeout). However xreadlines is deprecated and not
   available when the io module is used. Use ``for line in Serial(...):``
   instead.
 
@@ -405,13 +405,13 @@ New Features:
 - Moved some of the examples to serial.tools so that they can be used
   with ``python -m``
 - serial port enumeration now included as ``serial.tools.list_ports``
-- URL handers for ``serial_for_url`` are now imported dynamically. This allows
+- URL handlers for ``serial_for_url`` are now imported dynamically. This allows
   to add protocols w/o editing files. The list
   ``serial.protocol_handler_packages`` can be used to add or remove user
   packages with protocol handlers (see docs for details).
 - new URL type: hwgrep://<regexp> uses list_ports module to search for ports
   by their description
-- serveral internal changes to improve Python 3.x compatibility (setup.py,
+- several internal changes to improve Python 3.x compatibility (setup.py,
   use of absolute imports and more)
 
 Bugfixes:
@@ -681,3 +681,56 @@ Bugfixes (win32):
 - [#144] Use Unicode API for list_ports
 - [#145] list_ports_windows: support devices with only VID
 - [#162] Write in non-blocking mode returns incorrect value on windows
+
+
+Version 3.3   2017-03-08
+------------------------
+Improvements:
+
+- [#206] Exclusive access on POSIX. ``exclusive`` flag added.
+- [#172] list_ports_windows: list_ports with 'manufacturer' info property
+- [#174] miniterm: change cancel impl. for console
+- [#182] serialutil: add overall timeout for read_until
+- socket: use non-blocking socket and new Timeout class
+- socket: implement a functional a reset_input_buffer
+- rfc2217: improve read timeout implementation
+- win32: include error message from system in ClearCommError exception
+- and a few minor changes, docs
+
+Bugfixes:
+
+- [#183] rfc2217: Fix broken calls to to_bytes on Python3.
+- [#188] rfc2217: fix auto-open use case when port is given as parameter
+
+Bugfixes (posix):
+
+- [#178] in read, count length of converted data
+- [#189] fix return value of write
+
+Bugfixes (win32):
+
+- [#194] spurious write fails with ERROR_SUCCESS
+
+
+Version 3.4   2017-07-22
+------------------------
+Improvements:
+
+- miniterm: suspend function (temporarily release port, :kbd:`Ctrl-T s`)
+- [#240] context manager automatically opens port on ``__enter__``
+- [#141] list_ports: add interface number to location string
+- [#225] protocol_socket: Retry if ``BlockingIOError`` occurs in
+  ``reset_input_buffer``.
+
+Bugfixes:
+
+- [#153] list_ports: option to include symlinked devices
+- [#237] list_ports: workaround for special characters in port names
+
+Bugfixes (posix):
+
+- allow calling cancel functions w/o error if port is closed
+- [#220] protocol_socket: sync error handling with posix version
+- [#227] posix: ignore more blocking errors and EINTR, timeout only
+  applies to blocking I/O
+- [#228] fix: port_publisher typo

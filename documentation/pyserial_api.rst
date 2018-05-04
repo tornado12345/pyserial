@@ -12,7 +12,7 @@ Native ports
 
 .. class:: Serial
 
-    .. method:: __init__(port=None, baudrate=9600, bytesize=EIGHTBITS, parity=PARITY_NONE, stopbits=STOPBITS_ONE, timeout=None, xonxoff=False, rtscts=False, write_timeout=None, dsrdtr=False, inter_byte_timeout=None)
+    .. method:: __init__(port=None, baudrate=9600, bytesize=EIGHTBITS, parity=PARITY_NONE, stopbits=STOPBITS_ONE, timeout=None, xonxoff=False, rtscts=False, write_timeout=None, dsrdtr=False, inter_byte_timeout=None, exclusive=None)
 
         :param port:
             Device name or :const:`None`.
@@ -52,6 +52,10 @@ Native ports
 
         :param float inter_byte_timeout:
             Inter-character timeout, :const:`None` to disable (default).
+
+        :param bool exclusive:
+            Set exclusive access mode (POSIX only).  A port cannot be opened in 
+            exclusive access mode if it is already open in exclusive access mode.
 
         :exception ValueError:
             Will be raised when parameter are out of range, e.g. baud rate, data bits.
@@ -108,6 +112,7 @@ Native ports
         .. versionchanged:: 2.5
             *dsrdtr* now defaults to ``False`` (instead of *None*)
         .. versionchanged:: 3.0 numbers as *port* argument are no longer supported
+        .. versionadded:: 3.3 ``exclusive`` flag
 
     .. method:: open()
 
@@ -117,7 +122,7 @@ Native ports
 
             Some OS and/or drivers may activate RTS and or DTR automatically,
             as soon as the port is opened. There may be a glitch on RTS/DTR
-            when :attr:`rts`` or :attr:`dtr` are set differently from their
+            when :attr:`rts` or :attr:`dtr` are set differently from their
             default value (``True`` / active).
 
         .. note::
@@ -200,7 +205,7 @@ Native ports
 
     .. method:: reset_input_buffer()
 
-        Flush input buffer, discarding all it's contents.
+        Flush input buffer, discarding all its contents.
 
         .. versionchanged:: 3.0 renamed from ``flushInput()``
 
@@ -510,17 +515,22 @@ Native ports
         >>> with serial.serial_for_url(port) as s:
         ...     s.write(b'hello')
 
-        Here no port argument is given, so it is not opened automatically:
+        The port is opened automatically:
 
-        >>> with serial.Serial() as s:
-        ...     s.port = ...
-        ...     s.open()
+        >>> port = serial.Serial()
+        >>> port.port = '...'
+        >>> with port as s:
         ...     s.write(b'hello')
+
+        Which also means that ``with`` statements can be used repeatedly,
+        each time opening and closing the port.
+
+        .. versionchanged:: 3.4 the port is automatically opened
 
 
     .. method:: __exit__(exc_type, exc_val, exc_tb)
 
-        Closes serial port.
+        Closes serial port (exceptions are not handled by ``__exit__``).
 
 
     Platform specific methods.
@@ -577,7 +587,7 @@ Native ports
         :platform: Posix
         :platform: Windows
 
-        Cancel a pending read operation from an other thread. A blocking
+        Cancel a pending read operation from another thread. A blocking
         :meth:`read` call is aborted immediately. :meth:`read` will not report
         any error but return all data received up to that point (similar to a
         timeout).
@@ -591,7 +601,7 @@ Native ports
         :platform: Posix
         :platform: Windows
 
-        Cancel a pending write operation from an other thread. The
+        Cancel a pending write operation from another thread. The
         :meth:`write` method will return immediately (no error indicated).
         However the OS may still be sending from the buffer, a separate call to
         :meth:`reset_output_buffer` may be needed.
@@ -613,7 +623,7 @@ Native ports
 
     .. method:: isOpen()
 
-    	.. deprecated:: 3.0 see :attr:`is_open`
+        .. deprecated:: 3.0 see :attr:`is_open`
 
     .. attribute:: writeTimeout
 
@@ -698,6 +708,7 @@ Native ports
 Implementation detail: some attributes and functions are provided by the
 class :class:`SerialBase` and some by the platform specific class and
 others by the base class mentioned above.
+
 
 RS485 support
 -------------
@@ -787,7 +798,6 @@ on regular serial ports (``serial.rs485`` needs to be imported).
 
     .. note:: The loopback property is ignored by this implementation. The actual
         behavior depends on the used hardware.
-
 
 
 
@@ -1055,7 +1065,7 @@ Module functions and attributes
     :returns: a generator that yields bytes
 
     Some versions of Python (3.x) would return integers instead of bytes when
-    looping over an instance of ``bytes``.  This helper function ensures that
+    looping over an instance of ``bytes``. This helper function ensures that
     bytes are returned.
 
     .. versionadded:: 3.0
@@ -1258,7 +1268,7 @@ asyncio
 ``asyncio`` was introduced with Python 3.4. Experimental support for pySerial
 is provided via a separate distribution `pyserial-asyncio`_.
 
-It is currently under developement, see:
+It is currently under development, see:
 
 - http://pyserial-asyncio.readthedocs.io/
 - https://github.com/pyserial/pyserial-asyncio
